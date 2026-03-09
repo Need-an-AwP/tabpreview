@@ -1,25 +1,38 @@
 import './style.css';
-import type { TabGroupInfo } from '../../shared/types';
+import type { TabGroupInfo, Config } from '../../shared/types';
+import { defaultConfig } from '../../shared/types';
+const vscode = acquireVsCodeApi();
 
 declare global {
 	interface Window {
 		__TAB_GROUPS__: TabGroupInfo[];
+		__CONFIG__: Config;
 	}
 }
 
-const vscode = acquireVsCodeApi();
+// window.addEventListener('message', event => {
+// 	const message = event.data;
+// });
+
+
+
 const AUTOCLOSE = true;
 // debug: open dev tools when autoclose is disabled
-!AUTOCLOSE && vscode.postMessage({ command: 'openDevTools' });
+// !AUTOCLOSE && vscode.postMessage({ command: 'openDevTools' });
 
-console.log(window.__TAB_GROUPS__);
+
+console.log(window.__CONFIG__);
 const tabGroups = window.__TAB_GROUPS__ ?? [];
+const config = window.__CONFIG__ ?? defaultConfig;
 // const allTabs = tabGroups.flatMap(g => g.tabs);
 const currentGroupTabs = tabGroups.find(g => g.isActive)?.tabs ?? [];
 
 const tabListHtml = currentGroupTabs.map(tab => /* html */`
-	<div class="tab-item">
-		<span class="tab-label">${tab.isDirty ? '● ' : ''}${tab.label}</span>
+	<div class="tab-item relative">
+		<span class="tab-label z-10">${tab.isDirty ? '● ' : ''}${tab.label}</span>
+		${tab.iconUri && config.icon.enable &&
+			/* html */`<img src="${tab.iconUri}" class="z-0 ${config.icon.grayscale && 'grayscale'} absolute left-0 top-0 opacity-50 w-full h-full" />`
+	}
 	</div>
 `).join('');
 
@@ -43,7 +56,12 @@ function updateActiveTab(delta = 1) {
 }
 updateActiveTab();
 
-function closeWindow() {
+function closeWindow(isSwitchingTab: boolean) {
+	// seperate switch signal and close signal
+	if (isSwitchingTab) {
+		const tab = currentGroupTabs[selectedTabIndex];
+		vscode.postMessage({ command: 'switchTab', uri: tab.uri, inputType: tab.inputType });
+	}
 	if (AUTOCLOSE) {
 		vscode.postMessage({ command: 'close' });
 	}
@@ -61,11 +79,11 @@ window.addEventListener('keydown', (e: KeyboardEvent) => {
 window.addEventListener('keyup', (e: KeyboardEvent) => {
 	if (e.key === 'Control') {
 		// 向插件 postMessage 发送信号关闭 Webview
-		closeWindow();
+		closeWindow(true);
 	}
 });
 
 // close Webview when it loses focus (e.g., user clicks away or switches windows)
 window.addEventListener('blur', () => {
-	closeWindow();
+	closeWindow(false);
 });

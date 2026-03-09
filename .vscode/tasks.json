@@ -4,9 +4,9 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "build:webview",
+			"label": "webview:build",
 			"type": "npm",
-			"script": "build:webview", // run build of the sub vite project
+			"script": "webview:build", // run build of the sub vite project
 			"presentation": {
 				"reveal": "always",
 				"panel": "dedicated"
@@ -25,7 +25,7 @@
 				"isDefault": true
 			},
 			"dependsOn": [
-				"build:webview" // ensure webview is built before starting watch
+				"webview:build" // ensure webview is built before starting watch
 			]
 		}
 	]

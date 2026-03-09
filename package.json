@@ -35,7 +35,8 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
-    "build:webview": "npm -C src/webview run build"
+    "webview:build": "npm -C src/webview run build",
+    "webview:dev": "npm -C src/webview run dev"
   },
   "devDependencies": {
     "@types/vscode": "^1.109.0",

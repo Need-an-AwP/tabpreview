@@ -31,53 +31,16 @@ body {
   text-align: center;
 }
 
-.key {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 140px;
-	height: 140px;
-	font-size: 36px;
-	font-weight: bold;
-	border-radius: 16px;
-	border: 2px solid var(--vscode-keybindingLabel-border, var(--vscode-contrastBorder, #555));
-	border-bottom: 3px solid var(--vscode-keybindingLabel-bottomBorder, var(--vscode-contrastBorder, #444));
-	background: var(--vscode-keybindingLabel-background, var(--vscode-editor-background));
-	color: var(--vscode-keybindingLabel-foreground, var(--vscode-editor-foreground));
-	transition: all 0.1s ease;
-}
-.key.active {
-	border-color: var(--vscode-focusBorder, #007acc);
-	border-bottom-color: var(--vscode-focusBorder, #007acc);
-	background: var(--vscode-button-background, #007acc);
-	color: var(--vscode-button-foreground, #fff);
-	box-shadow: 0 0 24px color-mix(in srgb, var(--vscode-focusBorder, #007acc) 60%, transparent);
-}
-
 .tab-item {
-	padding: 5px 12px;
-	border-radius: 4px;
-	background: var(--vscode-tab-inactiveBackground, var(--vscode-editorGroupHeader-tabsBackground));
-	color: var(--vscode-tab-inactiveForeground, var(--vscode-editor-foreground));
-	border: 1px solid transparent;
-	text-align: left;
-	transition: background 0.1s;
-}
-
-.tab-item:hover {
-	background: var(--vscode-list-hoverBackground);
-	color: var(--vscode-list-hoverForeground);
+	@apply 
+	flex items-center justify-center 
+	aspect-square rounded-md p-4
+	transition-all duration-200 
+	bg-(--vscode-tab-inactiveBackground) hover:bg-(--vscode-list-hoverBackground)
+	text-(--vscode-font-size) font-(family-name:--vscode-editor-font-family)
+	cursor-pointer;
 }
 
 .tab-item.active {
-	background: var(--vscode-list-hoverBackground);
-	color: var(--vscode-list-hoverForeground);
-	border: 1px solid var(--vscode-tab-activeBorderTop, var(--vscode-focusBorder));
-}
-
-.tab-label {
-	font-size: var(--vscode-font-size, 13px);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	@apply ring-2 ring-(--vscode-tab-activeBorderTop) bg-(--vscode-list-hoverBackground);
 }

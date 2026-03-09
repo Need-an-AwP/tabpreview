@@ -16,6 +16,7 @@ export interface TabInfo {
     isDirty: boolean;
     isPinned: boolean;
     isPreview: boolean;
+    iconUri: string | undefined;
 }
 
 export interface TabGroupInfo {
@@ -23,3 +24,23 @@ export interface TabGroupInfo {
     viewColumn: number;
     tabs: TabInfo[];
 }
+
+export interface Config {
+    icon: {
+        enable: boolean;
+        grayscale: boolean;
+        opacity: number;
+    },
+    text: {
+        fontSize?: number;
+    }
+}
+
+export const defaultConfig: Config = {
+    icon: {
+        enable: true,
+        grayscale: false,
+        opacity: 0.5,
+    },
+    text: {}
+};
