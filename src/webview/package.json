@@ -16,6 +16,9 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
+    "lit-html": "^3.3.2",
+    "lucide": "^0.577.0",
+    "monaco-editor": "^0.55.1",
     "tailwindcss": "^4.2.1"
   }
 }

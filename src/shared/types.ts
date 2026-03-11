@@ -34,6 +34,7 @@ export interface Config {
     text: {
         fontSize?: number;
     }
+    showCloseButton: boolean;
 }
 
 export const defaultConfig: Config = {
@@ -42,5 +43,6 @@ export const defaultConfig: Config = {
         grayscale: false,
         opacity: 0.5,
     },
-    text: {}
+    text: {},
+    showCloseButton: true,
 };
