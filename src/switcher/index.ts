@@ -1,14 +1,11 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import * as path from 'path';
 import type { TabGroupInfo, TabInputType, Config } from '../shared/types';
 import type { Manifest } from '../manifest';
-
+import { getIconUriForTab, getContentText } from './utils';
+import { assembleWebview, loadHtml } from './loadHtml';
 
 export const makeSwitcher = (context: vscode.ExtensionContext, currentPanel: vscode.WebviewPanel | undefined, config: Config) => {
-    // load HTML
-    const htmlUri = vscode.Uri.joinPath(context.extensionUri, 'src', 'webview', 'dist', 'index.html');
-    const preloadedHtmlContent = fs.readFileSync(htmlUri.fsPath, 'utf8');
     // load icons manifest
     const manifestUri = vscode.Uri.joinPath(context.extensionUri, 'asserts', 'material-icon', 'material-icons.json');
     const manifestContent = fs.readFileSync(manifestUri.fsPath, 'utf8');
@@ -29,19 +26,26 @@ export const makeSwitcher = (context: vscode.ExtensionContext, currentPanel: vsc
             },
             {
                 enableScripts: true,
+                localResourceRoots: [
+                    context.extensionUri
+                ]
                 // retainContextWhenHidden: true, // no need to save the state of this extension
             }
         );
 
+        // load HTML
+        const { distHtmlContent, htmlBaseUri } = loadHtml(context, currentPanel.webview);
+
         const tabsData = getTabGroupsData(manifest, currentPanel.webview, context.extensionUri);
         // inject method, no need for the webview to request data after the first load
-        currentPanel.webview.html = preloadedHtmlContent.replace(
-            '</head>',
-            `<script>
-            window.__TAB_GROUPS__ = ${JSON.stringify(tabsData)};
-            window.__CONFIG__ = ${JSON.stringify(config)};
-            <\/script></head>`
-        );
+        currentPanel.webview.html = assembleWebview({
+            distHtmlContent,
+            htmlBaseUri,
+            data: {
+                tabsData,
+                config
+            }
+        });
 
         // 监听 Webview 发来的消息
         currentPanel.webview.onDidReceiveMessage(
@@ -57,7 +61,7 @@ export const makeSwitcher = (context: vscode.ExtensionContext, currentPanel: vsc
                         }
                         return;
                     case 'closeTab':
-                        if (!message.uri || !message.groupIndex) {
+                        if (message.uri === undefined || message.groupIndex === undefined || typeof message.groupIndex !== 'number') {
                             return;
                         }
                         closeTab(message.uri, message.groupIndex);
@@ -93,25 +97,27 @@ export const makeSwitcher = (context: vscode.ExtensionContext, currentPanel: vsc
 };
 
 const getTabGroupsData = (manifest: Manifest, webview: vscode.Webview, extensionUri: vscode.Uri): TabGroupInfo[] => {
-    const tabGroupsData: TabGroupInfo[] = vscode.window.tabGroups.all.map(group => ({
-        isActive: group.isActive,
-        viewColumn: group.viewColumn,
-        tabs: group.tabs.map(tab => {
-
-            const { uri, inputType } = getTabInfo(tab);
-
-            return {
-                isActive: tab.isActive,
-                label: tab.label,
-                uri,
-                inputType,
-                isDirty: tab.isDirty,
-                isPinned: tab.isPinned,
-                isPreview: tab.isPreview,
-                iconUri: getIconUriForTab(tab, manifest, webview, extensionUri),
-            };
-        })
-    }));
+    const tabGroupsData: TabGroupInfo[] = vscode.window.tabGroups.all
+        .filter(group => group.isActive)
+        .map(group => ({
+            isActive: group.isActive,
+            viewColumn: group.viewColumn,
+            tabs: group.tabs.map(tab => {
+                const { uri, inputType, content } = getTabInfo(tab);
+                return {
+                    isActive: tab.isActive,
+                    label: tab.label,
+                    uri,
+                    inputType,
+                    isDirty: tab.isDirty,
+                    isPinned: tab.isPinned,
+                    isPreview: tab.isPreview,
+                    iconUri: getIconUriForTab(tab, manifest, webview, extensionUri),
+                    textContent: content,
+                    language: vscode.workspace.textDocuments.find(doc => doc.uri.toString() === uri)?.languageId
+                };
+            })
+        }));
 
     return tabGroupsData;
 };
@@ -120,15 +126,18 @@ const getTabGroupsData = (manifest: Manifest, webview: vscode.Webview, extension
 const getTabInfo = (tab: vscode.Tab) => {
     let uri: string | undefined;
     let inputType: TabInputType;
+    let content: string | undefined;
 
     switch (true) {
         case tab.input instanceof vscode.TabInputText:
             uri = tab.input.uri.toString();
             inputType = 'text';
+            content = getContentText(tab.input.uri);
             break;
         case tab.input instanceof vscode.TabInputTextDiff:
             uri = tab.input.modified.toString();
             inputType = 'textDiff';
+            content = getContentText(tab.input.modified);
             break;
         case tab.input instanceof vscode.TabInputNotebook:
             uri = tab.input.uri.toString();
@@ -155,81 +164,7 @@ const getTabInfo = (tab: vscode.Tab) => {
             inputType = 'unknown';
     }
 
-    return { uri, inputType };
-};
-
-const getIconUriForTab = (tab: vscode.Tab, manifest: Manifest, webview: vscode.Webview, extensionUri: vscode.Uri): string | undefined => {
-    let filePath: string | undefined;
-    let languageId: string | undefined;
-
-    if (tab.input instanceof vscode.TabInputText || tab.input instanceof vscode.TabInputCustom || tab.input instanceof vscode.TabInputNotebook) {
-        filePath = tab.input.uri.fsPath;
-        if (tab.input instanceof vscode.TabInputText) {
-            const uriStr = tab.input.uri.toString();
-            languageId = vscode.workspace.textDocuments.find(d => d.uri.toString() === uriStr)?.languageId;
-        }
-    } else if (tab.input instanceof vscode.TabInputTextDiff || tab.input instanceof vscode.TabInputNotebookDiff) {
-        filePath = tab.input.modified.fsPath;
-        if (tab.input instanceof vscode.TabInputTextDiff) {
-            const uriStr = tab.input.modified.toString();
-            languageId = vscode.workspace.textDocuments.find(d => d.uri.toString() === uriStr)?.languageId;
-        }
-    }
-
-    if (filePath) {
-        const relativeIconPath = getIconPathByFileName(filePath, manifest, languageId);
-        if (relativeIconPath) {
-            const adjustedPath = relativeIconPath.replace(/\.\.\//g, '');
-            const iconUri = vscode.Uri.joinPath(extensionUri, 'asserts', 'material-icon', adjustedPath);
-            // console.log(`Icon URI for ${filePath}: ${iconUri}, languageId: ${languageId}`);
-            return webview.asWebviewUri(iconUri).toString();
-        }
-    }
-
-    return undefined;
-};
-
-
-const getIconPathByFileName = (filePath: string, themeData: Manifest, languageId?: string) => {
-    // /project/src/app.test.ts -> app.test.ts
-    const fileName = path.basename(filePath).toLowerCase();
-
-    let iconId = themeData.file;
-
-    // 1. 优先级 1：精确匹配文件名 (例如 settings.json, Dockerfile)
-    if (themeData.fileNames && themeData.fileNames[fileName]) {
-        iconId = themeData.fileNames[fileName];
-    } else {
-        // 2. 优先级 2：复合后缀与单后缀匹配
-        if (themeData.fileExtensions) {
-            // 例: 'app.test.ts' -> ['app', 'test', 'ts']
-            const parts = fileName.split('.');
-
-            // 从包含最长后缀的组合开始查找，比如优先找 'test.ts'，没找到再找 'ts'
-            // i 从 1 开始，因为第一个原素 'app' 是主文件名，不是扩展名部分
-            for (let i = 1; i < parts.length; i++) {
-                const extToTest = parts.slice(i).join('.'); // 'test.ts' 然后是 'ts'
-
-                if (themeData.fileExtensions[extToTest]) {
-                    iconId = themeData.fileExtensions[extToTest];
-                    break;
-                }
-            }
-        }
-
-        // 3. 优先级 3：通过 languageId 在 languageIds 中查找
-        // 适用于 ts/js/html 等 fileExtensions 中没有直接条目的语言
-        if (iconId === themeData.file && languageId && themeData.languageIds?.[languageId]) {
-            iconId = themeData.languageIds[languageId];
-        }
-    }
-
-    // 4. 去 iconDefinitions 中查出最终的 iconPath
-    if (iconId && themeData.iconDefinitions && themeData.iconDefinitions[iconId]) {
-        return themeData.iconDefinitions[iconId].iconPath;
-    }
-
-    return undefined;
+    return { uri, inputType, content };
 };
 
 const closeTab = (closingUri: string, groupIndex: number) => {

@@ -1,10 +1,11 @@
 {
-  "name": "webview",
+  "name": "tab_preview_webview",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "watch": "vite build --watch",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

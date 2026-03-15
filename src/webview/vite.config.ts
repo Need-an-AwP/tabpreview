@@ -1,15 +1,17 @@
 // vite.config.ts
-import { viteSingleFile } from 'vite-plugin-singlefile';
 import tailwindcss from '@tailwindcss/vite';
-
+import path, { resolve } from 'path';
 
 export default {
+  base: './', // 生成的文件相对于当前 HTML 文件的位置
   plugins: [
-    viteSingleFile(),
+    // viteSingleFile(),
     tailwindcss()
   ],
-  build: {
-    assetsInlineLimit: 100_000_000, // 强制内联所有资源
-    cssCodeSplit: false,
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@shared': path.resolve(__dirname, '../shared')
+    }
   }
 };

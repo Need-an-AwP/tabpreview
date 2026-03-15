@@ -16,19 +16,11 @@
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
-  min-height: 100vh;
-  background: var(--vscode-editor-background);
   color: var(--vscode-editor-foreground);
-  font-family: var(--vscode-font-family);
-}
-
-#app {
-  margin: 0 auto;
-  text-align: center;
+  @apply 
+  m-0 p-0 h-screen w-screen
+  bg-(--vscode-editor-background) font-(family-name:--vscode-font-family)
 }
 
 .tab-item {

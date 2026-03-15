@@ -13,20 +13,47 @@
 			}
 		},
 		{
+			"label": "webview:watch",
 			"type": "npm",
-			"script": "compile", // "watch" is replaced by "compile"
+			"script": "webview:watch", // this should be run as a background task, and should trigger the watch mode of the sub vite project
+			"isBackground": true,
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated"
+			},
+			"problemMatcher": {
+				"owner": "vite",
+				"pattern": {
+					"regexp": "^$"
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": ".*(vite v.*|building).*",
+					"endsPattern": ".*built in.*"
+				}
+			}
+		},
+		{
+			"label": "extension:watch",
+			"type": "npm",
+			"script": "watch",
 			"problemMatcher": "$tsc-watch",
 			"isBackground": true,
 			"presentation": {
 				"reveal": "never"
-			},
+			}
+		},
+		{
+			"label": "watch-all",
+			"dependsOn": [
+				"webview:watch",
+				"extension:watch"
+			],
+			"dependsOrder": "parallel",
 			"group": {
 				"kind": "build",
 				"isDefault": true
-			},
-			"dependsOn": [
-				"webview:build" // ensure webview is built before starting watch
-			]
+			}
 		}
 	]
 }
