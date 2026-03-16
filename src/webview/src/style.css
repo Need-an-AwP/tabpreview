@@ -26,11 +26,18 @@ body {
 .tab-item {
 	@apply 
 	flex items-center justify-center 
-	aspect-square rounded-md p-4
+	aspect-square rounded-md p-2
 	transition-all duration-200 
 	bg-(--vscode-tab-inactiveBackground) hover:bg-(--vscode-list-hoverBackground)
 	text-(--vscode-font-size) font-(family-name:--vscode-editor-font-family)
 	cursor-pointer;
+}
+
+.tab-item.has-thumbnail {
+  width: auto !important;  /* 移除固定宽度，自适应内容 */
+  height: auto !important; /* 移除固定高度，自适应内容 */
+  aspect-ratio: unset;     /* 移除 aspect-square 的宽高比限制 */
+  display: inline-flex !important;   /* 改为内联块，适应内容 */
 }
 
 .tab-item.active {

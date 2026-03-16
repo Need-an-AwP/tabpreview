@@ -1,6 +1,6 @@
 import './style.css';
-import type { TabGroupInfo, Config } from '../../shared/types';
-import { defaultConfig } from '../../shared/types';
+import type { TabGroupInfo, Config } from '@shared/types';
+import { defaultConfig } from '@shared/defaultConfig';
 import { initState, state } from './state';
 import { vscodeActions } from './vscode';
 import { rerender } from './render';
@@ -12,7 +12,7 @@ declare global {
     }
 }
 
-const AUTOCLOSE = true;
+const AUTOCLOSE = false;
 // debug: open dev tools when autoclose is disabled
 !AUTOCLOSE && vscodeActions.openDevTools();
 

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import type { TabGroupInfo, TabInputType, Config } from './shared/types';
-import { defaultConfig } from './shared/types';
+import { defaultConfig } from './shared/defaultConfig';
 import { makeSwitcher } from './switcher';
 
 export function activate(context: vscode.ExtensionContext) {

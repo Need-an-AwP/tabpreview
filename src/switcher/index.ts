@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import type { TabGroupInfo, TabInputType, Config } from '../shared/types';
 import type { Manifest } from '../manifest';
-import { getIconUriForTab, getContentText } from './utils';
+import { getIconUriForTab } from './utils';
 import { assembleWebview, loadHtml } from './loadHtml';
 
 export const makeSwitcher = (context: vscode.ExtensionContext, currentPanel: vscode.WebviewPanel | undefined, config: Config) => {
@@ -165,6 +165,13 @@ const getTabInfo = (tab: vscode.Tab) => {
     }
 
     return { uri, inputType, content };
+};
+
+// 当目标editor从未被激活过时，会得到undefined结果
+const getContentText = (uri: vscode.Uri): string | undefined => {
+    const text = vscode.workspace.textDocuments.find(d => d.uri.toString() === uri.toString())?.getText();
+    console.log(`Fetched content text for URI: ${uri}, length: ${text?.length}`);
+    return text;
 };
 
 const closeTab = (closingUri: string, groupIndex: number) => {

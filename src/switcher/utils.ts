@@ -94,7 +94,3 @@ const getIconPathByFileName = (filePath: string, themeData: Manifest, languageId
 
     return undefined;
 };
-
-export const getContentText = (uri: vscode.Uri): string | undefined => {
-    return vscode.workspace.textDocuments.find(d => d.uri.toString() === uri.toString())?.getText();
-};

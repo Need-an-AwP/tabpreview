@@ -17,7 +17,7 @@ export interface TabInfo {
     isPinned: boolean;
     isPreview: boolean;
     iconUri: string | undefined;
-    textContent?:string;
+    textContent?: string;
     language?: string;
 }
 
@@ -27,31 +27,48 @@ export interface TabGroupInfo {
     tabs: TabInfo[];
 }
 
-export interface Config {
-    size: number; // size of the tab preview in pixels
-    icon: {
-        showIcon: boolean;
-        grayscale: boolean;
-        opacity: number; // Range: 0 to 1
-        size: number; // percentage of the tab item size, e.g., 0.5 means 50% of the tab item size
-    },
-    text: {
-        fontSize?: number;
-        fontColor?: string;
-    },
-    showCloseButton: boolean;
-    showThumbnail: boolean;
-}
+type IconPosition =
+    | 'top'
+    | 'center'
+    | 'bottom'
+    | 'top-left'
+    | 'top-right'
+    | 'center-left'
+    | 'center-right'
+    | 'bottom-left'
+    | 'bottom-right';
 
-export const defaultConfig: Config = {
-    size: 90,
+/** Complete config */
+export interface Config {
+    /** Size in px */
+    size: number;
     icon: {
-        showIcon: true,
-        grayscale: false,
-        opacity: 0.5,
-        size: 0.5,
+        /** Display icon */
+        display: boolean;
+        /** Grayscale icon */
+        grayscale: boolean;
+        /** Opacity, range: 0 to 1 */
+        opacity: number;
+        /** Size in px */
+        size: number;
+        /** Icon position */
+        position: IconPosition;
     },
     text: {},
-    showCloseButton: true,
-    showThumbnail: false,
-};
+    /** Show close button */
+    showCloseButton: boolean;
+    thumbnail: {
+        /** Display thumbnail */
+        display: boolean;
+        /** Monaco Editor theme for thumbnail */
+        theme: string;
+        /** Font size in px */
+        fontSize: number;
+        /** Line height in px */
+        lineHeight: number;
+        /** Render characters */
+        renderCharacters: boolean;
+        /** Opacity, range: 0 to 1 */
+        opacity: number;
+    }
+}

@@ -11,10 +11,13 @@ export function App() {
             overflow-x-hidden select-none"
         >
             <div
-                class="flex flex-row flex-wrap justify-center gap-4
+                class="flex flex-row flex-wrap justify-center items-center gap-4
                 max-w-full max-h-full p-2 "
             >
-                ${tabs.length > 0 ? tabs.map((tab) => Array(10).fill(TabItem(tab))) : placeholder()}
+                ${tabs.length > 0 ? tabs.map((tab) => 
+                    // Array(10).fill(TabItem(tab))
+                    TabItem(tab)
+                ) : placeholder()}
             </div>
         </div>
     `;

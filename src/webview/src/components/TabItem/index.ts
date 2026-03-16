@@ -2,19 +2,35 @@ import { html } from 'lit-html';
 import type { TabInfo } from '@shared/types';
 import { state } from '@/state';
 import { closeTabAndRerender } from '@/actions';
+import { vscodeActions } from '@/vscode';
 import { thumbnail } from './thumbnail';
+import { tabIcon } from './icon';
+
+// z-20 close button & text & tab label
+// z-10 icon
+// z-0 thumbnail
+
+const hasThumbnail = (tab: TabInfo): boolean => {
+    const config = state.config;
+    return tab.textContent !== undefined && tab.textContent.length > 0 && config.thumbnail.display;
+};
+
 
 export function TabItem(tab: TabInfo) {
     const config = state.config;
+    const hasThumbnailFlag = hasThumbnail(tab);
+
     return html`
         <div
             id="tab-${tab.uri}"
-            class="tab-item relative group"
-            style="width: ${config.size}px; height: ${config.size}px;"
-            data-uri="${tab.uri}"
-            data-input-type="${tab.inputType}"
+            class="tab-item relative group ${hasThumbnailFlag ? 'has-thumbnail' : ''}"
+            style="${hasThumbnailFlag
+                ? `min-width: ${config.size}px; min-height: ${config.size}px;`
+                : `width: ${config.size}px; height: ${config.size}px;`}"
             @click=${(e: MouseEvent) => {
                 e.preventDefault();
+                vscodeActions.switchTab(tab);
+                vscodeActions.closeTabPreview();
             }}
             @auxclick=${(e: PointerEvent) => {
                 // close tab by clicking auxiliary mouse button
@@ -29,27 +45,28 @@ export function TabItem(tab: TabInfo) {
             }}
         >
             <!-- tab label -->
-            <span class="z-20"> ${tab.isDirty ? '● ' : ''}${tab.label} </span>
+            ${tabLabel(tab)}
 
             <!-- tab icon -->
-            ${tab.iconUri &&
-            config.icon.showIcon &&
-            html`<img
-                src="${tab.iconUri}"
-                class="z-10 aspect-square
-                ${config.icon.grayscale ? 'grayscale' : ''}
-                absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                style="opacity: ${config.icon.opacity}; 
-                width: ${config.icon.size * 100}%; 
-                height: ${config.icon.size * 100}%"
-            />`}
+            ${tab.iconUri && config.icon.display ? tabIcon(tab) : ''}
 
             <!-- editor thumbnail -->
-            ${config.showThumbnail ? thumbnail(tab) : ''}
+            ${hasThumbnailFlag ? thumbnail(tab) : ''}
 
             <!-- close icon -->
             ${config.showCloseButton ? closeButton(tab) : ''}
         </div>
+    `;
+}
+
+function tabLabel(tab: TabInfo) {
+    return html`
+        <span
+            class="z-20
+        absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
+        >
+            ${tab.isDirty ? '● ' : ''}${tab.label}
+        </span>
     `;
 }
 
