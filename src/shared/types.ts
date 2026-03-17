@@ -38,6 +38,8 @@ type IconPosition =
     | 'bottom-left'
     | 'bottom-right';
 
+type monacoTheme = 'vs' | 'vs-dark' | 'hc-black' | 'hc-light';
+
 /** Complete config */
 export interface Config {
     /** Size in px */
@@ -61,7 +63,7 @@ export interface Config {
         /** Display thumbnail */
         display: boolean;
         /** Monaco Editor theme for thumbnail */
-        theme: string;
+        theme: monacoTheme;
         /** Font size in px */
         fontSize: number;
         /** Line height in px */

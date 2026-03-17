@@ -14,13 +14,120 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "TabPreview",
+      "properties": {
+        "tabPreview.size": {
+          "type": "number",
+          "default": 90,
+          "minimum": 0,
+          "description": "The size of tab items in pixels"
+        },
+        "tabPreview.icon.display": {
+          "type": "boolean",
+          "default": true,
+          "description": "Display icon"
+        },
+        "tabPreview.icon.grayscale": {
+          "type": "boolean",
+          "default": false,
+          "description": "Grayscale icon"
+        },
+        "tabPreview.icon.opacity": {
+          "type": "number",
+          "default": 0.6,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Opacity of icons, range: 0 to 1"
+        },
+        "tabPreview.icon.size": {
+          "type": "number",
+          "default": 45,
+          "description": "Size in px"
+        },
+        "tabPreview.icon.position": {
+          "type": "string",
+          "default": "center",
+          "description": "Icon position",
+          "enum": [
+            "top",
+            "center",
+            "bottom",
+            "top-left",
+            "top-right",
+            "center-left",
+            "center-right",
+            "bottom-left",
+            "bottom-right"
+          ]
+        },
+        "tabPreview.showCloseButton": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to show close buttons on tab items"
+        },
+        "tabPreview.thumbnail.display": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to show thumbnails in the tab switcher"
+        },
+        "tabPreview.thumbnail.theme": {
+          "type": "string",
+          "default": "vs-dark",
+          "description": "Theme of editor thumbnails",
+          "enum": [
+            "vs",
+            "vs-dark",
+            "hc-black",
+            "hc-light"
+          ]
+        },
+        "tabPreview.thumbnail.fontSize": {
+          "type": "number",
+          "default": 4,
+          "minimum": 0,
+          "description": "Editor thumbnail font size in px"
+        },
+        "tabPreview.thumbnail.lineHeight": {
+          "type": "number",
+          "default": 8,
+          "minimum": 0,
+          "description": "Editor thumbnail line height in px"
+        },
+        "tabPreview.thumbnail.renderCharacters": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to display characters in thumbnails"
+        },
+        "tabPreview.thumbnail.opacity": {
+          "type": "number",
+          "default": 0.4,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Opacity of editor thumbnails, range: 0 to 1"
+        }
+      }
+    },
     "commands": [
       {
         "command": "tabpreview.showSwitcher",
         "title": "Show Tab Switcher Panel",
         "category": "TabPreview"
+      },
+      {
+        "command": "tabpreview.settings",
+        "title": "Open TabPreview Settings",
+        "category": "TabPreview"
       }
     ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "tabpreview.showSwitcher",
+          "when": "false"
+        }
+      ]
+    },
     "keybindings": [
       {
         "command": "tabpreview.showSwitcher",
