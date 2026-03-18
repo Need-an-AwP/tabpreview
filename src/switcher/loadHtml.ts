@@ -4,9 +4,9 @@ import type { TabGroupInfo, TabInputType, Config } from '../shared/types';
 
 
 export function loadHtml(context: vscode.ExtensionContext, webview: vscode.Webview): { distHtmlContent: string, htmlBaseUri: string } {
-    const htmlUri = vscode.Uri.joinPath(context.extensionUri, 'src', 'webview', 'dist', 'index.html');
+    const htmlUri = vscode.Uri.joinPath(context.extensionUri, 'media', 'index.html');
     const distHtmlContent = fs.readFileSync(htmlUri.fsPath, 'utf8');
-    const baseUri = vscode.Uri.joinPath(context.extensionUri, 'src', 'webview', 'dist');
+    const baseUri = vscode.Uri.joinPath(context.extensionUri, 'media');
     const htmlBaseUri = webview.asWebviewUri(baseUri).toString() + '/';
 
     return {

@@ -4,15 +4,6 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "webview:build",
-			"type": "npm",
-			"script": "webview:build", // run build of the sub vite project
-			"presentation": {
-				"reveal": "always",
-				"panel": "dedicated"
-			}
-		},
-		{
 			"label": "webview:watch",
 			"type": "npm",
 			"script": "webview:watch", // this should be run as a background task, and should trigger the watch mode of the sub vite project

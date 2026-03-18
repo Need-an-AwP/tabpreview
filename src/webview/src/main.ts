@@ -12,7 +12,12 @@ declare global {
     }
 }
 
-const AUTOCLOSE = false;
+// THIS SHOULD BE SET TO TRUE IN PRODUCTION
+let AUTOCLOSE = false;
+if (import.meta.env.PROD) {
+    AUTOCLOSE = true;
+}
+
 // debug: open dev tools when autoclose is disabled
 !AUTOCLOSE && vscodeActions.openDevTools();
 
