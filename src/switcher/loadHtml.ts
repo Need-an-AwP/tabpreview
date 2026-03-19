@@ -30,7 +30,7 @@ export function assembleWebview({
     const safeData = JSON.stringify({
         tabsData: data.tabsData,
         config: data.config
-    });
+    }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e'); // 转译html标签字符串，以防止意外截断，同时允许json正常解析
 
     // ATTENTION: replace `<head>` instead of `</head>` to ensure the script is executed before any other script in the HTML,
     // which is crucial for providing the base path 

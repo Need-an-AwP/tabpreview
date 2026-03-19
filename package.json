@@ -4,11 +4,28 @@
   "description": "Custom tab switcher with previews",
   "version": "0.0.1",
   "publisher": "NeedanAwP",
+  "license": "MIT",
+  "preview": true,
+  "repository":{
+    "type": "git",
+    "url": "https://github.com/Need-an-AwP/tabpreview"
+  },
+  "homepage": "https://github.com/Need-an-AwP/tabpreview#readme",
   "engines": {
     "vscode": "^1.109.0"
   },
   "categories": [
+    "Visualization",
     "Other"
+  ],
+  "keywords": [
+    "tab",
+    "tabs",
+    "tab switcher",
+    "tab preview",
+    "editor",
+    "navigation",
+    "ctrl+tab"
   ],
   "activationEvents": [],
   "main": "./out/extension.js",

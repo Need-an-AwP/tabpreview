@@ -170,7 +170,7 @@ const getTabInfo = (tab: vscode.Tab) => {
 // 当目标editor从未被激活过时，会得到undefined结果
 const getContentText = (uri: vscode.Uri): string | undefined => {
     const text = vscode.workspace.textDocuments.find(d => d.uri.toString() === uri.toString())?.getText();
-    console.log(`Fetched content text for URI: ${uri}, length: ${text?.length}`);
+    // console.log(`Fetched content text for URI: ${uri}, length: ${text?.length}`);
     return text;
 };
 

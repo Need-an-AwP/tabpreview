@@ -14,7 +14,7 @@ declare global {
 
 // THIS SHOULD BE SET TO TRUE IN PRODUCTION
 let AUTOCLOSE = false;
-if (import.meta.env.PROD) {
+if (import.meta.env.MODE !== 'development') { // using mode str instead of env
     AUTOCLOSE = true;
 }
 

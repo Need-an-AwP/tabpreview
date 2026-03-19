@@ -1,8 +1,18 @@
 import { html } from 'lit-html';
 import { ref } from 'lit-html/directives/ref.js';
-import { editor } from 'monaco-editor';
 import type { TabInfo } from '@shared/types';
 import { state } from '@/state';
+
+// only import language contributions and editor from monaco, to reduce bundle size
+// 仅从monaco editor中导入所有语言包及editor模块，减少打包体积
+//@ts-ignore
+import { editor } from 'monaco-editor/esm/vs/editor/editor.api';
+const languageModules = import.meta.glob(
+    '/node_modules/monaco-editor/esm/vs/basic-languages/*/*.contribution.js',
+    { eager: true }
+);
+console.log('Number of language modules loaded:', Object.keys(languageModules).length);
+
 
 export function thumbnail(tab: TabInfo) {
     const thumbnailConfig = state.config.thumbnail;
