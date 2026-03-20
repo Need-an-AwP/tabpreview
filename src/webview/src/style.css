@@ -37,7 +37,9 @@ body {
   width: auto !important;  /* 移除固定宽度，自适应内容 */
   height: auto !important; /* 移除固定高度，自适应内容 */
   aspect-ratio: unset;     /* 移除 aspect-square 的宽高比限制 */
-  display: inline-flex !important;   /* 改为内联块，适应内容 */
+  display: inline-flex !important;
+  max-height: 90vh;
+  max-width: 90vw;
 }
 
 .tab-item.active {

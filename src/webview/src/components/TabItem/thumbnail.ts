@@ -7,11 +7,16 @@ import { state } from '@/state';
 // 仅从monaco editor中导入所有语言包及editor模块，减少打包体积
 //@ts-ignore
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api';
-const languageModules = import.meta.glob(
+const jsonModules = import.meta.glob(
+    '/node_modules/monaco-editor/esm/vs/language/json/*.js',
+    { eager: true }
+);
+console.log('json modules loaded:', Object.keys(jsonModules).length);
+const basicLanguageModules = import.meta.glob(
     '/node_modules/monaco-editor/esm/vs/basic-languages/*/*.contribution.js',
     { eager: true }
 );
-console.log('Number of language modules loaded:', Object.keys(languageModules).length);
+console.log('basic language modules loaded:', Object.keys(basicLanguageModules).length);
 
 
 export function thumbnail(tab: TabInfo) {
@@ -30,22 +35,30 @@ export function thumbnail(tab: TabInfo) {
 
         // load text content
         const content = tab.textContent;
-        container.textContent = content;
 
-        // 4. 原地进行极轻量级的静态高亮渲染，无需查找，无需重新渲染 App
+        editor.setTheme(state.config.thumbnail.theme);
         editor
-            .colorizeElement(container, {
-                theme: thumbnailConfig.theme,
-                mimeType: tab.language,
-            })
-            .then(() => {
-                // 着色后应用“缩略图”视觉样式
+            .colorize(
+                content,
+                tab.language || 'plaintext',
+                { tabSize: undefined } // tab width, default 4
+            )
+            .then((htmlString: string) => {
+                container.innerHTML = htmlString;
                 container.style.fontSize = `${thumbnailConfig.fontSize}px`;
                 container.style.lineHeight = `${thumbnailConfig.lineHeight}px`;
 
+                // 部分tokenizer会将缩进空格和文本内容合并在同一个span中，目前无法处理
+                // 参考vscode的minimap渲染可能会有帮助
+                // some tokenizers merge indentation spaces with text content in the same span, which cannot be handled at the moment
+                // referencing vscode's minimap rendering might be helpful
                 if (!thumbnailConfig.renderCharacters) {
-                    container.querySelectorAll('span').forEach((span) => {
-                        span.style.backgroundColor = 'currentColor';
+                    // only select spans with class containing 'mtk' (monaco token class)
+                    container.querySelectorAll<HTMLSpanElement>('span[class*="mtk"]').forEach((span) => {
+                        // only set background color for non-empty spans
+                        if (span.textContent && span.textContent.trim() !== '') {
+                            span.style.backgroundColor = 'currentColor';
+                        }
                     });
                 }
             });
@@ -53,7 +66,7 @@ export function thumbnail(tab: TabInfo) {
 
     return html`
         <div
-            class="thumbnail z-0 pointer-events-none overflow-hidden"
+            class="z-0 pointer-events-none overflow-hidden"
             style="opacity: ${thumbnailConfig.opacity};"
             ${ref(monacoMountHook)}
         />

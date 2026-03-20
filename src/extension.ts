@@ -4,12 +4,10 @@ import { makeSwitcher } from './switcher';
 
 export function activate(context: vscode.ExtensionContext) {
     let currentPanel: vscode.WebviewPanel | undefined;
-    
-    const config = getConfig();
 
     const uiSettingsCommand = registerSettingsCommand();
 
-    const showSwitcher = makeSwitcher(context, currentPanel, config);
+    const showSwitcher = makeSwitcher(context, currentPanel, getConfig);
 
 
 

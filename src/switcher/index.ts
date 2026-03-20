@@ -5,7 +5,7 @@ import type { Manifest } from '../manifest';
 import { getIconUriForTab } from './utils';
 import { assembleWebview, loadHtml } from './loadHtml';
 
-export const makeSwitcher = (context: vscode.ExtensionContext, currentPanel: vscode.WebviewPanel | undefined, config: Config) => {
+export const makeSwitcher = (context: vscode.ExtensionContext, currentPanel: vscode.WebviewPanel | undefined, getConfig: () => Config) => {
     // load icons manifest
     const manifestUri = vscode.Uri.joinPath(context.extensionUri, 'asserts', 'material-icon', 'material-icons.json');
     const manifestContent = fs.readFileSync(manifestUri.fsPath, 'utf8');
@@ -37,6 +37,7 @@ export const makeSwitcher = (context: vscode.ExtensionContext, currentPanel: vsc
         const { distHtmlContent, htmlBaseUri } = loadHtml(context, currentPanel.webview);
 
         const tabsData = getTabGroupsData(manifest, currentPanel.webview, context.extensionUri);
+        const config = getConfig(); // Get latest config when opening the switcher
         // inject method, no need for the webview to request data after the first load
         currentPanel.webview.html = assembleWebview({
             distHtmlContent,

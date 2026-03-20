@@ -2,7 +2,7 @@
   "name": "tabpreview",
   "displayName": "TabPreview",
   "description": "Custom tab switcher with previews",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "publisher": "NeedanAwP",
   "license": "MIT",
   "preview": true,
@@ -10,6 +10,7 @@
     "type": "git",
     "url": "https://github.com/Need-an-AwP/tabpreview"
   },
+  "icon": "./asserts/icon.png",
   "homepage": "https://github.com/Need-an-AwP/tabpreview#readme",
   "engines": {
     "vscode": "^1.109.0"
@@ -113,7 +114,7 @@
         "tabPreview.thumbnail.renderCharacters": {
           "type": "boolean",
           "default": false,
-          "description": "Whether to display characters in thumbnails"
+          "description": "Display characters or color blocks in thumbnails"
         },
         "tabPreview.thumbnail.opacity": {
           "type": "number",
@@ -152,6 +153,7 @@
     ]
   },
   "scripts": {
+    "package": "vsce package",
     "vscode:prepublish": "npm run webview:build && npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",

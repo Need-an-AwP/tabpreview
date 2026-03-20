@@ -19,18 +19,7 @@ TabPreview is a custom Ctrl+Tab switcher for VS Code with visual tab previews.
 
 ## Command Visibility
 
-The main command is intentionally hidden from Command Palette in `package.json`:
-
-```json
-"menus": {
-	"commandPalette": [
-		{
-			"command": "tabpreview.showSwitcher",
-			"when": "false"
-		}
-	]
-}
-```
+The main command is intentionally hidden from Command Palette, the only way to open tab preview is `Ctrl+Tab`.
 
 ## Settings
 
