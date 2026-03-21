@@ -2,7 +2,7 @@
   "name": "tabpreview",
   "displayName": "TabPreview",
   "description": "Custom tab switcher with previews",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "NeedanAwP",
   "license": "MIT",
   "preview": true,
@@ -122,6 +122,11 @@
           "minimum": 0,
           "maximum": 1,
           "description": "Opacity of editor thumbnails, range: 0 to 1"
+        },
+        "tabPreview.thumbnail.onlyVisibleRange": {
+          "type": "boolean",
+          "default": true,
+          "description": "Only get text from editors' visible range\n!!! CAUTION: DISABLE THIS MIGHT AFFECT PERFORMANCE !!!"
         }
       }
     },

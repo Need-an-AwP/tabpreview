@@ -62,8 +62,8 @@ export function TabItem(tab: TabInfo) {
 function tabLabel(tab: TabInfo) {
     return html`
         <span
-            class="z-20
-        absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            class="z-20 w-full wrap-break-word text-center
+            absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
         >
             ${tab.isDirty ? '● ' : ''}${tab.label}
         </span>

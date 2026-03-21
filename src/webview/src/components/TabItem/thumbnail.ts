@@ -35,6 +35,7 @@ export function thumbnail(tab: TabInfo) {
 
         // load text content
         const content = tab.textContent;
+        // console.log('text content of', tab.label, content);
 
         editor.setTheme(state.config.thumbnail.theme);
         editor
@@ -48,16 +49,33 @@ export function thumbnail(tab: TabInfo) {
                 container.style.fontSize = `${thumbnailConfig.fontSize}px`;
                 container.style.lineHeight = `${thumbnailConfig.lineHeight}px`;
 
-                // 部分tokenizer会将缩进空格和文本内容合并在同一个span中，目前无法处理
-                // 参考vscode的minimap渲染可能会有帮助
-                // some tokenizers merge indentation spaces with text content in the same span, which cannot be handled at the moment
-                // referencing vscode's minimap rendering might be helpful
+                // 显示色块
                 if (!thumbnailConfig.renderCharacters) {
-                    // only select spans with class containing 'mtk' (monaco token class)
                     container.querySelectorAll<HTMLSpanElement>('span[class*="mtk"]').forEach((span) => {
-                        // only set background color for non-empty spans
-                        if (span.textContent && span.textContent.trim() !== '') {
-                            span.style.backgroundColor = 'currentColor';
+                        const text = span.textContent;
+                        // 手动处理空格字符的背景色，以确保在缩略图中空格不显示色块
+                        if (text && text.trim() !== '') {
+                            // Split text by standard spaces and non-breaking spaces
+                            const parts = text.split(/([ \u00A0]+)/g);
+                            if (parts.length > 1) {
+                                const fragment = document.createDocumentFragment();
+                                parts.forEach(part => {
+                                    if (!part) {
+                                        return;
+                                    }
+                                    const newSpan = document.createElement('span');
+                                    newSpan.textContent = part;
+                                    // Only preserve class and background color for non-space parts
+                                    if (part.trim() !== '') {
+                                        newSpan.className = span.className;
+                                        newSpan.style.backgroundColor = 'currentColor';
+                                    }
+                                    fragment.appendChild(newSpan);
+                                });
+                                span.replaceWith(fragment);
+                            } else {
+                                span.style.backgroundColor = 'currentColor';
+                            }
                         }
                     });
                 }

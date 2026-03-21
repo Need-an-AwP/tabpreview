@@ -23,6 +23,7 @@ export function getConfig(): Config {
             lineHeight: tabPreviewConfig.get('thumbnail.lineHeight', defaultConfig.thumbnail.lineHeight),
             renderCharacters: tabPreviewConfig.get('thumbnail.renderCharacters', defaultConfig.thumbnail.renderCharacters),
             opacity: tabPreviewConfig.get('thumbnail.opacity', defaultConfig.thumbnail.opacity),
+            onlyVisibleRange: tabPreviewConfig.get('thumbnail.onlyVisibleRange', defaultConfig.thumbnail.onlyVisibleRange)
         }
     };
     console.log('TabPreview config loaded:', JSON.stringify(config, null, 2));

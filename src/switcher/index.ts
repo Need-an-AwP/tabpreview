@@ -36,8 +36,8 @@ export const makeSwitcher = (context: vscode.ExtensionContext, currentPanel: vsc
         // load HTML
         const { distHtmlContent, htmlBaseUri } = loadHtml(context, currentPanel.webview);
 
-        const tabsData = getTabGroupsData(manifest, currentPanel.webview, context.extensionUri);
         const config = getConfig(); // Get latest config when opening the switcher
+        const tabsData = getTabGroupsData(manifest, currentPanel.webview, context.extensionUri, config);
         // inject method, no need for the webview to request data after the first load
         currentPanel.webview.html = assembleWebview({
             distHtmlContent,
@@ -65,7 +65,7 @@ export const makeSwitcher = (context: vscode.ExtensionContext, currentPanel: vsc
                         if (message.uri === undefined || message.groupIndex === undefined || typeof message.groupIndex !== 'number') {
                             return;
                         }
-                        closeTab(message.uri, message.groupIndex);
+                        closeTab(message.uri, message.groupIndex, config);
                         console.log(`Closing tab with URI: ${message.uri}`);
 
                         return;
@@ -97,14 +97,14 @@ export const makeSwitcher = (context: vscode.ExtensionContext, currentPanel: vsc
     });
 };
 
-const getTabGroupsData = (manifest: Manifest, webview: vscode.Webview, extensionUri: vscode.Uri): TabGroupInfo[] => {
+const getTabGroupsData = (manifest: Manifest, webview: vscode.Webview, extensionUri: vscode.Uri, config: Config): TabGroupInfo[] => {
     const tabGroupsData: TabGroupInfo[] = vscode.window.tabGroups.all
         .filter(group => group.isActive)
         .map(group => ({
             isActive: group.isActive,
             viewColumn: group.viewColumn,
             tabs: group.tabs.map(tab => {
-                const { uri, inputType, content } = getTabInfo(tab);
+                const { uri, inputType, content } = getTabInfo(tab, config);
                 return {
                     isActive: tab.isActive,
                     label: tab.label,
@@ -124,7 +124,7 @@ const getTabGroupsData = (manifest: Manifest, webview: vscode.Webview, extension
 };
 
 
-const getTabInfo = (tab: vscode.Tab) => {
+const getTabInfo = (tab: vscode.Tab, config: Config) => {
     let uri: string | undefined;
     let inputType: TabInputType;
     let content: string | undefined;
@@ -133,12 +133,12 @@ const getTabInfo = (tab: vscode.Tab) => {
         case tab.input instanceof vscode.TabInputText:
             uri = tab.input.uri.toString();
             inputType = 'text';
-            content = getContentText(tab.input.uri);
+            content = getContentText(tab.input.uri, config);
             break;
         case tab.input instanceof vscode.TabInputTextDiff:
             uri = tab.input.modified.toString();
             inputType = 'textDiff';
-            content = getContentText(tab.input.modified);
+            content = getContentText(tab.input.modified, config);
             break;
         case tab.input instanceof vscode.TabInputNotebook:
             uri = tab.input.uri.toString();
@@ -168,19 +168,58 @@ const getTabInfo = (tab: vscode.Tab) => {
     return { uri, inputType, content };
 };
 
-// 当目标editor从未被激活过时，会得到undefined结果
-const getContentText = (uri: vscode.Uri): string | undefined => {
-    const text = vscode.workspace.textDocuments.find(d => d.uri.toString() === uri.toString())?.getText();
-    // console.log(`Fetched content text for URI: ${uri}, length: ${text?.length}`);
-    return text;
+const findTextDocument = (uri: vscode.Uri): vscode.TextDocument | undefined =>
+    vscode.workspace.textDocuments.find(d => d.uri.toString() === uri.toString());
+
+const findVisibleEditor = (uri: vscode.Uri): vscode.TextEditor | undefined =>
+    vscode.window.visibleTextEditors.find(editor => editor.document.uri.toString() === uri.toString());
+
+// `visibleTextEditors.find` can only return editors that have been focused at least once, 
+// so we need to cache the ranges to make it act like `textDocuments.find`
+const visibleRangeCache = new Map<string, readonly vscode.Range[]>(); // key is uri string
+
+// 按可见范围顺序直接拼接文本片段，不插入额外分隔符；拿不到当前 range 时回退缓存
+const getVisibleRangeText = (uri: vscode.Uri, document: vscode.TextDocument, visibleRanges?: readonly vscode.Range[]): string | undefined => {
+    const uriKey = uri.toString();
+
+    if (visibleRanges && visibleRanges.length > 0) {
+        visibleRangeCache.set(uriKey, [...visibleRanges]);
+    }
+
+    const ranges = (visibleRanges && visibleRanges.length > 0)
+        ? visibleRanges
+        : visibleRangeCache.get(uriKey);
+
+    if (!ranges || ranges.length === 0) {
+        return undefined;
+    }
+
+    return ranges.map(range => document.getText(range)).join('');
 };
 
-const closeTab = (closingUri: string, groupIndex: number) => {
+// 当目标 editor 从未被激活过时，可能拿不到 document 或 visibleRanges
+const getContentText = (uri: vscode.Uri, config: Config): string | undefined => {
+    const document = findTextDocument(uri);
+    if (!document) {
+        return undefined;
+    }
+
+    if (!config.thumbnail.onlyVisibleRange) {
+        return document.getText();
+    }
+
+    const visibleRanges = findVisibleEditor(uri)?.visibleRanges;
+
+    return getVisibleRangeText(uri, document, visibleRanges);
+};
+
+const closeTab = (closingUri: string, groupIndex: number, config: Config) => {
     vscode.window.tabGroups.all[groupIndex].tabs.forEach(tab => {
-        const { uri: tabUri } = getTabInfo(tab);
+        const { uri: tabUri } = getTabInfo(tab, config);
 
         if (tabUri === closingUri) {
             vscode.window.tabGroups.close(tab);
+            visibleRangeCache.delete(closingUri);
             return;
         }
     });

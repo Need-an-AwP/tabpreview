@@ -72,5 +72,7 @@ export interface Config {
         renderCharacters: boolean;
         /** Opacity, range: 0 to 1 */
         opacity: number;
+        /** Only get text from the visible range of editors */
+        onlyVisibleRange: boolean
     }
 }

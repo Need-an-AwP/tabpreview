@@ -18,5 +18,6 @@ export const defaultConfig: Config = {
         lineHeight: 8,
         renderCharacters: false,
         opacity: 0.4,
+        onlyVisibleRange: true
     }
 };

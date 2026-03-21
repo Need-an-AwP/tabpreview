@@ -26,7 +26,7 @@ body {
 .tab-item {
 	@apply 
 	flex items-center justify-center 
-	aspect-square rounded-md p-2
+	aspect-square rounded-md p-2 overflow-hidden
 	transition-all duration-200 
 	bg-(--vscode-tab-inactiveBackground) hover:bg-(--vscode-list-hoverBackground)
 	text-(--vscode-font-size) font-(family-name:--vscode-editor-font-family)
