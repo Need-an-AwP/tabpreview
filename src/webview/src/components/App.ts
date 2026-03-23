@@ -14,9 +14,8 @@ export function App() {
                 class="flex flex-row flex-wrap justify-center items-center gap-4
                 max-w-full max-h-full p-2 "
             >
-                ${tabs.length > 0 ? tabs.map((tab) => 
-                    // Array(10).fill(TabItem(tab))
-                    TabItem(tab)
+                ${tabs.length > 0 ? tabs.map((tab, idx) => 
+                    TabItem(tab, idx)
                 ) : placeholder()}
             </div>
         </div>

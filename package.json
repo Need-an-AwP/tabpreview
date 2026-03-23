@@ -2,7 +2,7 @@
   "name": "tabpreview",
   "displayName": "TabPreview",
   "description": "Custom tab switcher with previews",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "NeedanAwP",
   "license": "MIT",
   "preview": true,
@@ -34,6 +34,11 @@
     "configuration": {
       "title": "TabPreview",
       "properties": {
+        "tabPreview.retainWebview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Keep the webview alive or dispose it asap\nATTENTION: Retaining the WebView reduces performance overhead and significantly accelerates response times."
+        },
         "tabPreview.size": {
           "type": "number",
           "default": 90,

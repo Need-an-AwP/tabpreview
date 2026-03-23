@@ -39,6 +39,7 @@ suite('Extension Test Suite', () => {
 		}
 
 		const expectedDefaults: Record<string, unknown> = {
+			'tabPreview.retainWebview': defaultConfig.retainWebview,
 			'tabPreview.size': defaultConfig.size,
 			'tabPreview.icon.display': defaultConfig.icon.display,
 			'tabPreview.icon.grayscale': defaultConfig.icon.grayscale,

@@ -11,19 +11,22 @@ import { tabIcon } from './icon';
 // z-0 thumbnail
 
 const hasThumbnail = (tab: TabInfo): boolean => {
-    const config = state.config;
-    return tab.textContent !== undefined && tab.textContent.length > 0 && config.thumbnail.display;
+    return (
+        tab.textContent !== undefined &&
+        tab.textContent.length > 0 &&
+        state.config.thumbnail.display
+    );
 };
 
-
-export function TabItem(tab: TabInfo) {
+export function TabItem(tab: TabInfo, index: number) {
     const config = state.config;
     const hasThumbnailFlag = hasThumbnail(tab);
+    const isActive = index === state.selectedTabIndex;
 
     return html`
         <div
             id="tab-${tab.uri}"
-            class="tab-item relative group ${hasThumbnailFlag ? 'has-thumbnail' : ''}"
+            class="tab-item relative group ${hasThumbnailFlag ? 'has-thumbnail' : ''} ${isActive ? 'active' : ''}"
             style="${hasThumbnailFlag
                 ? `min-width: ${config.size}px; min-height: ${config.size}px;`
                 : `width: ${config.size}px; height: ${config.size}px;`}"

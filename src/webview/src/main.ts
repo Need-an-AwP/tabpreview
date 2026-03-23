@@ -13,7 +13,7 @@ declare global {
 }
 
 // THIS SHOULD BE SET TO TRUE IN PRODUCTION
-let AUTOCLOSE = false;
+let AUTOCLOSE = true;
 if (import.meta.env.MODE !== 'development') { // using mode str instead of env
     AUTOCLOSE = true;
 }
@@ -21,7 +21,7 @@ if (import.meta.env.MODE !== 'development') { // using mode str instead of env
 // debug: open dev tools when autoclose is disabled
 !AUTOCLOSE && vscodeActions.openDevTools();
 
-!AUTOCLOSE && console.log('CONFIG:', window.__CONFIG__, '\nTABGROUPS:', window.__TAB_GROUPS__);
+console.log('CONFIG:', window.__CONFIG__, '\nTABGROUPS:', window.__TAB_GROUPS__);
 
 initState({
     tabGroups: window.__TAB_GROUPS__ ?? [],
@@ -31,16 +31,13 @@ initState({
 // first render
 rerender();
 
-// start from 1, automatically change to the next tab
-function updateActiveTab(delta = 1) {
-    const tabItems = document.querySelectorAll<HTMLDivElement>('.tab-item');
+function updateSelectedTab(delta = 1) {
     if (delta !== 0 && state.currentGroupTabs.length > 1) {
         state.selectedTabIndex =
             (state.selectedTabIndex + delta + state.currentGroupTabs.length) % state.currentGroupTabs.length;
+        rerender();
     }
-    tabItems.forEach((el, i) => el.classList.toggle('active', i === state.selectedTabIndex));
 }
-updateActiveTab();
 
 function closeTabPreviewWindow(isSwitchingTab: boolean) {
     // seperate switch signal and close signal
@@ -58,7 +55,13 @@ window.focus(); // make sure the Webview has focus to capture key events immedia
 window.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.key === 'Tab') {
         e.preventDefault();
-        updateActiveTab(e.shiftKey ? -1 : 1);
+        updateSelectedTab(e.shiftKey ? -1 : 1);
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        updateSelectedTab(1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        updateSelectedTab(-1);
     }
 });
 
@@ -72,4 +75,22 @@ window.addEventListener('keyup', (e: KeyboardEvent) => {
 // close Webview when it loses focus (e.g., user clicks away or switches windows)
 window.addEventListener('blur', () => {
     closeTabPreviewWindow(false);
+});
+
+// listen to messages from the extension to update data without reloading
+window.addEventListener('message', (event) => {
+    const message = event.data;
+
+    switch (message.command) {
+        case 'updateAll':
+            if (message.tabsData && message.config) {
+                console.log('update data in webview', message.tabsData, message.config);
+                initState({
+                    tabGroups: message.tabsData,
+                    config: message.config,
+                });
+                rerender();
+            }
+            break;
+    }
 });

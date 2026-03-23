@@ -7,21 +7,14 @@ import { state } from '@/state';
 // 仅从monaco editor中导入所有语言包及editor模块，减少打包体积
 //@ts-ignore
 import { editor } from 'monaco-editor/esm/vs/editor/editor.api';
-const jsonModules = import.meta.glob(
-    '/node_modules/monaco-editor/esm/vs/language/json/*.js',
-    { eager: true }
-);
-console.log('json modules loaded:', Object.keys(jsonModules).length);
+// json language contribution is not included in basic-languages, treat it as plaintext
 const basicLanguageModules = import.meta.glob(
-    '/node_modules/monaco-editor/esm/vs/basic-languages/*/*.contribution.js',
-    { eager: true }
+    '/node_modules/monaco-editor/esm/vs/basic-languages/*/*.contribution.js'
 );
-console.log('basic language modules loaded:', Object.keys(basicLanguageModules).length);
-
 
 export function thumbnail(tab: TabInfo) {
     const thumbnailConfig = state.config.thumbnail;
-    const monacoMountHook = (element?: Element) => {
+    const monacoMountHook = async (element?: Element) => {
         if (!element || !tab.textContent || tab.textContent.length === 0) {
             return;
         }
@@ -37,11 +30,19 @@ export function thumbnail(tab: TabInfo) {
         const content = tab.textContent;
         // console.log('text content of', tab.label, content);
 
+        const lang = tab.language || 'plaintext';
+        if (lang !== 'plaintext') {
+            const basicKey = Object.keys(basicLanguageModules).find(k => k.includes(`/${lang}/${lang}.contribution.js`));
+            if (basicKey && basicLanguageModules[basicKey]) {
+                await basicLanguageModules[basicKey]();
+            }
+        }
+
         editor.setTheme(state.config.thumbnail.theme);
         editor
             .colorize(
                 content,
-                tab.language || 'plaintext',
+                lang,
                 { tabSize: undefined } // tab width, default 4
             )
             .then((htmlString: string) => {

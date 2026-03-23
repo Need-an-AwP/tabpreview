@@ -1,6 +1,7 @@
 import type { Config } from './types';
 
 export const defaultConfig: Config = {
+    retainWebview: true,
     size: 90,
     icon: {
         display: true,
@@ -20,4 +21,4 @@ export const defaultConfig: Config = {
         opacity: 0.4,
         onlyVisibleRange: true
     }
-};
+};  

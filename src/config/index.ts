@@ -6,6 +6,7 @@ export function getConfig(): Config {
     const tabPreviewConfig = vscode.workspace.getConfiguration('tabPreview');
 
     const config: Config = {
+        retainWebview: tabPreviewConfig.get('retainWebview', defaultConfig.retainWebview),
         size: tabPreviewConfig.get('size', defaultConfig.size),
         icon: {
             display: tabPreviewConfig.get('icon.display', defaultConfig.icon.display),
@@ -26,7 +27,7 @@ export function getConfig(): Config {
             onlyVisibleRange: tabPreviewConfig.get('thumbnail.onlyVisibleRange', defaultConfig.thumbnail.onlyVisibleRange)
         }
     };
-    console.log('TabPreview config loaded:', JSON.stringify(config, null, 2));
+    // console.log('TabPreview config loaded:', JSON.stringify(config, null, 2));
 
     return config;
 }

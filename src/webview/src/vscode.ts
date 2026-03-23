@@ -20,5 +20,6 @@ export const vscodeActions = {
             uri,
             groupIndex: state.currentGroupIndex,
         });
-    }
+    },
+    reportLoadComplete: (e: string) => vscode.postMessage({ command: 'loadComplete', event: e }),
 };

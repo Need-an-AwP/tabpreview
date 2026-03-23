@@ -42,6 +42,8 @@ type monacoTheme = 'vs' | 'vs-dark' | 'hc-black' | 'hc-light';
 
 /** Complete config */
 export interface Config {
+    /** Keep the webview alive or dispose it asap */
+    retainWebview: boolean;
     /** Size in px */
     size: number;
     icon: {

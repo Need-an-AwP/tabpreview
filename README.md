@@ -34,6 +34,7 @@ All tab icons are from [vscode-material-icon-theme](https://github.com/material-
 
 TabPreview contributes settings under the `tabPreview.*` namespace, including:
 
+- `tabPreview.retainWebview`
 - `tabPreview.size`
 - `tabPreview.icon.*`
 - `tabPreview.showCloseButton`
