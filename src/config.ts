@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { defaultConfig } from '../shared/defaultConfig';
-import type { Config } from '../shared/types';
+import { defaultConfig } from './shared/defaultConfig';
+import type { Config } from './shared/types';
 
 export function getConfig(): Config {
     const tabPreviewConfig = vscode.workspace.getConfiguration('tabPreview');

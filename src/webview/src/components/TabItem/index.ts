@@ -33,7 +33,6 @@ export function TabItem(tab: TabInfo, index: number) {
             @click=${(e: MouseEvent) => {
                 e.preventDefault();
                 vscodeActions.switchTab(tab);
-                vscodeActions.closeTabPreview();
             }}
             @auxclick=${(e: PointerEvent) => {
                 // close tab by clicking auxiliary mouse button

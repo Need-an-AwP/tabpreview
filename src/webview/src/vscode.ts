@@ -1,7 +1,8 @@
 import type { TabInfo } from '@shared/types';
 import {state} from './state';
 
-const vscode = acquireVsCodeApi();
+// using vscode api from global
+const vscode = (window as any).vscodeApi || acquireVsCodeApi();
 
 export const vscodeActions = {
     openDevTools: () => vscode.postMessage({ command: 'openDevTools' }),
@@ -12,7 +13,6 @@ export const vscodeActions = {
             inputType: tab.inputType,
         });
     },
-    closeTabPreview: () => vscode.postMessage({ command: 'close' }),
     closeTab: (uri: string) => {
         console.log('Closing tab with URI:', uri, 'group index:', state.currentGroupIndex);
         vscode.postMessage({

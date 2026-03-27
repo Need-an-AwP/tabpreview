@@ -12,10 +12,17 @@ TabPreview is a custom Ctrl+Tab switcher for VS Code with visual tab previews.
 
 ## Usage
 
-1. Press `Ctrl+Tab` to open the TabPreview panel.
-2. Keep holding `Ctrl`, then press `Tab` (or `Shift+Tab`) to cycle selection.
-3. Release `Ctrl` to switch to the selected tab.
-4. Middle-click a tab item in TabPreview to close that tab directly.
+| Key | Action |
+| --- | --- |
+| `Ctrl+Tab` | Open panel |
+| `Tab` (while holding `Ctrl`) | Select next tab |
+| `ArrowLeft`/`ArrowRight` (while holding `Ctrl`) | Select next/previous tab |
+| Middle-click | Close tab |
+
+## Speed
+
+The current implementation is constrained by vscode's API; consequently, key-up detection had to be placed within the Webview, resulting in a focus latency of approximately 60ms. This may lead to missed keypress events if the Ctrl key is released too quickly.
+If `tabPreview.retainWebview` is been set to `false`, the webview will rerender completely every `ctrl+tab`, which will bring lantency around 150ms.
 
 ## Screen Shot
 
@@ -34,7 +41,7 @@ All tab icons are from [vscode-material-icon-theme](https://github.com/material-
 
 TabPreview contributes settings under the `tabPreview.*` namespace, including:
 
-- `tabPreview.retainWebview`
+- `tabPreview.retainWebview`    
 - `tabPreview.size`
 - `tabPreview.icon.*`
 - `tabPreview.showCloseButton`

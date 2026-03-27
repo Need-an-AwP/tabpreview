@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import type { Config } from '../shared/types';
+import { getConfig } from '../config';
+import type { Config, TabGroupInfo } from '../shared/types';
 import type { Manifest } from '../manifest';
 import { assembleWebview, loadHtml } from './loadHtml';
 import { getTabGroupsData, closeTab } from './utils';
+import { initState, AppState } from './state';
 
-export const makeSwitcher = (context: vscode.ExtensionContext, getConfig: () => Config) => {
+export const makeSwitcher = (context: vscode.ExtensionContext) => {
     // load icons manifest
     const manifestUri = vscode.Uri.joinPath(context.extensionUri, 'asserts', 'material-icon', 'material-icons.json');
     const manifestContent = fs.readFileSync(manifestUri.fsPath, 'utf8');
@@ -13,8 +15,22 @@ export const makeSwitcher = (context: vscode.ExtensionContext, getConfig: () => 
 
     let currentPanel: vscode.WebviewPanel | undefined = undefined;
     let keyPressedTime = 0;
+    let state: AppState;
 
-    return vscode.commands.registerCommand('tabpreview.showSwitcher', () => {
+    const updateSelectedTab = (delta = 1) => {
+        if (delta !== 0 && state.currentGroupTabs.length > 1) {
+            state.selectedTabIndex =
+                (state.selectedTabIndex + delta + state.currentGroupTabs.length) % state.currentGroupTabs.length;
+        }
+    };
+    const switchToSelectedTab = () => {
+        const selectedTab = state.currentGroupTabs[state.selectedTabIndex];
+        if (selectedTab.uri) {
+            vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(selectedTab.uri));
+        }
+    };
+
+    const showSwitcherCommand = vscode.commands.registerCommand('tabpreview.showSwitcher', () => {
         if (vscode.window.tabGroups.all[0].tabs.length === 0) {
             // no tabpreview webview display when zero editor is opened
             return;
@@ -22,43 +38,70 @@ export const makeSwitcher = (context: vscode.ExtensionContext, getConfig: () => 
 
         keyPressedTime = Date.now();
 
+        // set custom context key
+        setContextKey(true);
+        // get latest config
+        const config = getConfig();
+
         if (currentPanel) {
             if (!currentPanel.visible) {
+                currentPanel.reveal();
+                
                 // update data
-                const config = getConfig();
                 const tabsData = getTabGroupsData(manifest, currentPanel.webview, context.extensionUri, config);
+                state = initState({ tabGroups: tabsData, config });
                 currentPanel.webview.postMessage({
                     command: 'updateAll',
                     tabsData,
                     config
                 });
-                // loadWebview(context, currentPanel, manifest, getConfig);
-
-                currentPanel.reveal();
             }
         } else {
             currentPanel = setupWebview(
                 context,
-                getConfig,
+                config,
                 () => keyPressedTime,
+                switchToSelectedTab,
                 () => { currentPanel = undefined; }
             );
-            loadWebview(context, currentPanel, manifest, getConfig);
+            const tabsData = getTabGroupsData(manifest, currentPanel.webview, context.extensionUri, config);
+            state = initState({ tabGroups: tabsData, config });
+            loadWebview(context, currentPanel, config, tabsData);
         }
     });
+
+    const selectNextCommand = vscode.commands.registerCommand('tabpreview.selectNext', () => {
+        updateSelectedTab(1);
+        currentPanel?.webview.postMessage({
+            command: 'selectedTabIndex',
+            selectedTabIndex: state.selectedTabIndex
+        });
+    });
+
+    const selectPreviousCommand = vscode.commands.registerCommand('tabpreview.selectPrevious', () => {
+        updateSelectedTab(-1);
+        currentPanel?.webview.postMessage({
+            command: 'selectedTabIndex',
+            selectedTabIndex: state.selectedTabIndex
+        });
+    });
+
+    return [showSwitcherCommand, selectNextCommand, selectPreviousCommand];
 };
+
+const setContextKey = (i: boolean) => {
+    vscode.commands.executeCommand('setContext', 'tabpreview.visible', i);
+};
+
 
 const loadWebview = (
     context: vscode.ExtensionContext,
     panel: vscode.WebviewPanel,
-    manifest: Manifest,
-    getConfig: () => Config
+    config: Config,
+    tabsData: TabGroupInfo[]
 ) => {
     // load HTML
     const { distHtmlContent, htmlBaseUri } = loadHtml(context, panel.webview);
-
-    const config = getConfig(); // Get latest config when opening the switcher
-    const tabsData = getTabGroupsData(manifest, panel.webview, context.extensionUri, config);
 
     // inject method, no need for the webview to request data after the first load
     panel.webview.html = assembleWebview({
@@ -73,8 +116,9 @@ const loadWebview = (
 
 const setupWebview = (
     context: vscode.ExtensionContext,
-    getConfig: () => Config,
+    config: Config,
     getKeyPressedTime: () => number,
+    switchTab: () => void,
     onDispose: () => void
 ): vscode.WebviewPanel => {
     const panel = vscode.window.createWebviewPanel(
@@ -89,7 +133,7 @@ const setupWebview = (
             localResourceRoots: [
                 context.extensionUri
             ],
-            retainContextWhenHidden: getConfig().retainWebview,
+            retainContextWhenHidden: config.retainWebview,
         }
     );
 
@@ -97,8 +141,12 @@ const setupWebview = (
     panel.webview.onDidReceiveMessage(
         message => {
             switch (message.command) {
-                case 'close':
-                    if (panel && !getConfig().retainWebview) {
+                case 'closeTabPreviewWindow':
+                    console.log('Received close command from webview. isSwitchingTab:', message.isSwitchingTab);
+                    if (message.isSwitchingTab) {
+                        switchTab();
+                    }
+                    if (panel && !config.retainWebview) {
                         panel.dispose();
                     }
                     return;
@@ -107,7 +155,7 @@ const setupWebview = (
                         return;
                     }
                     // use getConfig() to always have the latest config when closing tab
-                    closeTab(message.uri, message.groupIndex, getConfig());
+                    closeTab(message.uri, message.groupIndex);
                     console.log(`Closing tab with URI: ${message.uri}`);
 
                     return;
@@ -135,6 +183,22 @@ const setupWebview = (
     panel.onDidDispose(
         () => {
             onDispose();
+            setContextKey(false);
+        },
+        null,
+        context.subscriptions
+    );
+
+    panel.onDidChangeViewState(
+        (e) => {
+            const isFocused = e.webviewPanel.active;
+            const isVisible = e.webviewPanel.visible;
+
+            if (isFocused) {
+                setContextKey(true);
+            } else {
+                setContextKey(false);
+            }
         },
         null,
         context.subscriptions

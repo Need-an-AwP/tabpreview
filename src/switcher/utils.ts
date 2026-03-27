@@ -126,7 +126,7 @@ export const getTabGroupsData = (manifest: Manifest, webview: vscode.Webview, ex
 };
 
 
-const getTabInfo = (tab: vscode.Tab, config: Config) => {
+const getTabInfo = (tab: vscode.Tab, config?: Config) => {
     let uri: string | undefined;
     let inputType: TabInputType;
     let content: string | undefined;
@@ -135,12 +135,12 @@ const getTabInfo = (tab: vscode.Tab, config: Config) => {
         case tab.input instanceof vscode.TabInputText:
             uri = tab.input.uri.toString();
             inputType = 'text';
-            content = getContentText(tab.input.uri, config);
+            content = config ? getContentText(tab.input.uri, config) : undefined;
             break;
         case tab.input instanceof vscode.TabInputTextDiff:
             uri = tab.input.modified.toString();
             inputType = 'textDiff';
-            content = getContentText(tab.input.modified, config);
+            content = config ? getContentText(tab.input.modified, config) : undefined;
             break;
         case tab.input instanceof vscode.TabInputNotebook:
             uri = tab.input.uri.toString();
@@ -215,9 +215,9 @@ const getContentText = (uri: vscode.Uri, config: Config): string | undefined => 
     return getVisibleRangeText(uri, document, visibleRanges);
 };
 
-export const closeTab = (closingUri: string, groupIndex: number, config: Config) => {
+export const closeTab = (closingUri: string, groupIndex: number) => {
     vscode.window.tabGroups.all[groupIndex].tabs.forEach(tab => {
-        const { uri: tabUri } = getTabInfo(tab, config);
+        const { uri: tabUri } = getTabInfo(tab);
 
         if (tabUri === closingUri) {
             vscode.window.tabGroups.close(tab);

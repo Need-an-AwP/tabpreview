@@ -2,11 +2,11 @@
   "name": "tabpreview",
   "displayName": "TabPreview",
   "description": "Custom tab switcher with previews",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "NeedanAwP",
   "license": "MIT",
   "preview": true,
-  "repository":{
+  "repository": {
     "type": "git",
     "url": "https://github.com/Need-an-AwP/tabpreview"
   },
@@ -142,6 +142,16 @@
         "category": "TabPreview"
       },
       {
+        "command": "tabpreview.selectNext",
+        "title": "Select Next Tab",
+        "category": "TabPreview"
+      },
+      {
+        "command": "tabpreview.selectPrevious",
+        "title": "Select Previous Tab",
+        "category": "TabPreview"
+      },
+      {
         "command": "tabpreview.settings",
         "title": "Open TabPreview Settings",
         "category": "TabPreview"
@@ -152,6 +162,14 @@
         {
           "command": "tabpreview.showSwitcher",
           "when": "false"
+        },
+        {
+          "command": "tabpreview.selectNext",
+          "when": "false"
+        },
+        {
+          "command": "tabpreview.selectPrevious",
+          "when": "false"
         }
       ]
     },
@@ -159,6 +177,21 @@
       {
         "command": "tabpreview.showSwitcher",
         "key": "ctrl+tab"
+      },
+      {
+        "command": "tabpreview.selectNext",
+        "key": "ctrl+tab",
+        "when": "tabpreview.visible"
+      },
+      {
+        "command": "tabpreview.selectNext",
+        "key": "ctrl+right",
+        "when": "tabpreview.visible"
+      },
+      {
+        "command": "tabpreview.selectPrevious",
+        "key": "ctrl+left",
+        "when": "tabpreview.visible"
       }
     ]
   },
