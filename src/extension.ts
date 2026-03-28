@@ -1,6 +1,12 @@
 import * as vscode from 'vscode';
 import { makeSwitcher } from './switcher';
 
+function registerSettingsCommand() {
+    return vscode.commands.registerCommand('tabpreview.settings', () => {
+        vscode.commands.executeCommand('workbench.action.openSettings', 'tabPreview');
+    });
+}
+
 export function activate(context: vscode.ExtensionContext) {
     const uiSettingsCommand = registerSettingsCommand();
 
@@ -10,12 +16,6 @@ export function activate(context: vscode.ExtensionContext) {
         uiSettingsCommand,
         ...switcherCommands
     );
-}
-
-function registerSettingsCommand() {
-    return vscode.commands.registerCommand('tabpreview.settings', () => {
-        vscode.commands.executeCommand('workbench.action.openSettings', 'tabPreview');
-    });
 }
 
 export function deactivate() { }

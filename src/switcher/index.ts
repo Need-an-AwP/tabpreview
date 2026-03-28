@@ -3,19 +3,27 @@ import * as fs from 'fs';
 import { getConfig } from '../config';
 import type { Config, TabGroupInfo } from '../shared/types';
 import type { Manifest } from '../manifest';
-import { assembleWebview, loadHtml } from './loadHtml';
-import { getTabGroupsData, closeTab } from './utils';
+import { assembleWebview } from './loadHtml';
+import { getTabGroupsData, closeTab, setContextKey } from './utils';
 import { initState, AppState } from './state';
+import { onCtrlReleaseListener } from './windowsKeyListener';
+
 
 export const makeSwitcher = (context: vscode.ExtensionContext) => {
     // load icons manifest
     const manifestUri = vscode.Uri.joinPath(context.extensionUri, 'asserts', 'material-icon', 'material-icons.json');
     const manifestContent = fs.readFileSync(manifestUri.fsPath, 'utf8');
     const manifest = JSON.parse(manifestContent) as Manifest;
+    // html sources
+    const htmlUri = vscode.Uri.joinPath(context.extensionUri, 'media', 'index.html');
+    const distHtmlContent = fs.readFileSync(htmlUri.fsPath, 'utf8');
+    const baseUri = vscode.Uri.joinPath(context.extensionUri, 'media');
 
     let currentPanel: vscode.WebviewPanel | undefined = undefined;
     let keyPressedTime = 0;
+    let stopCtrlReleaseListener: (() => void) | undefined;
     let state: AppState;
+    let needSwitch = false;
 
     const updateSelectedTab = (delta = 1) => {
         if (delta !== 0 && state.currentGroupTabs.length > 1) {
@@ -38,6 +46,8 @@ export const makeSwitcher = (context: vscode.ExtensionContext) => {
 
         keyPressedTime = Date.now();
 
+        needSwitch = true;
+
         // set custom context key
         setContextKey(true);
         // get latest config
@@ -46,7 +56,7 @@ export const makeSwitcher = (context: vscode.ExtensionContext) => {
         if (currentPanel) {
             if (!currentPanel.visible) {
                 currentPanel.reveal();
-                
+
                 // update data
                 const tabsData = getTabGroupsData(manifest, currentPanel.webview, context.extensionUri, config);
                 state = initState({ tabGroups: tabsData, config });
@@ -59,14 +69,27 @@ export const makeSwitcher = (context: vscode.ExtensionContext) => {
         } else {
             currentPanel = setupWebview(
                 context,
-                config,
+                getConfig,
                 () => keyPressedTime,
-                switchToSelectedTab,
                 () => { currentPanel = undefined; }
             );
             const tabsData = getTabGroupsData(manifest, currentPanel.webview, context.extensionUri, config);
             state = initState({ tabGroups: tabsData, config });
-            loadWebview(context, currentPanel, config, tabsData);
+            loadWebview(distHtmlContent, baseUri, currentPanel, config, tabsData);
+        }
+
+        if (!stopCtrlReleaseListener) {
+            stopCtrlReleaseListener = onCtrlReleaseListener(() => {
+                // no matter the webview is displayed or not
+                if (needSwitch) {
+                    switchToSelectedTab();
+                    needSwitch = false;
+                }
+
+                if (currentPanel && !getConfig().retainWebview) {
+                    currentPanel.dispose();
+                }
+            });
         }
     });
 
@@ -86,22 +109,27 @@ export const makeSwitcher = (context: vscode.ExtensionContext) => {
         });
     });
 
-    return [showSwitcherCommand, selectNextCommand, selectPreviousCommand];
-};
+    const disposable = new vscode.Disposable(() => {
+        stopCtrlReleaseListener?.();
+    });
 
-const setContextKey = (i: boolean) => {
-    vscode.commands.executeCommand('setContext', 'tabpreview.visible', i);
+    return [
+        showSwitcherCommand,
+        selectNextCommand,
+        selectPreviousCommand,
+        disposable
+    ];
 };
 
 
 const loadWebview = (
-    context: vscode.ExtensionContext,
+    distHtmlContent: string,
+    baseUri: vscode.Uri,
     panel: vscode.WebviewPanel,
     config: Config,
     tabsData: TabGroupInfo[]
 ) => {
-    // load HTML
-    const { distHtmlContent, htmlBaseUri } = loadHtml(context, panel.webview);
+    const htmlBaseUri = panel.webview.asWebviewUri(baseUri).toString() + '/';
 
     // inject method, no need for the webview to request data after the first load
     panel.webview.html = assembleWebview({
@@ -116,9 +144,8 @@ const loadWebview = (
 
 const setupWebview = (
     context: vscode.ExtensionContext,
-    config: Config,
+    getConfig: () => Config, // prevent closure trap
     getKeyPressedTime: () => number,
-    switchTab: () => void,
     onDispose: () => void
 ): vscode.WebviewPanel => {
     const panel = vscode.window.createWebviewPanel(
@@ -133,7 +160,7 @@ const setupWebview = (
             localResourceRoots: [
                 context.extensionUri
             ],
-            retainContextWhenHidden: config.retainWebview,
+            retainContextWhenHidden: getConfig().retainWebview,
         }
     );
 
@@ -142,11 +169,7 @@ const setupWebview = (
         message => {
             switch (message.command) {
                 case 'closeTabPreviewWindow':
-                    console.log('Received close command from webview. isSwitchingTab:', message.isSwitchingTab);
-                    if (message.isSwitchingTab) {
-                        switchTab();
-                    }
-                    if (panel && !config.retainWebview) {
+                    if (panel && !getConfig().retainWebview) {
                         panel.dispose();
                     }
                     return;
@@ -154,10 +177,7 @@ const setupWebview = (
                     if (message.uri === undefined || message.groupIndex === undefined || typeof message.groupIndex !== 'number') {
                         return;
                     }
-                    // use getConfig() to always have the latest config when closing tab
                     closeTab(message.uri, message.groupIndex);
-                    console.log(`Closing tab with URI: ${message.uri}`);
-
                     return;
                 case 'switchTab':
                     if (message.uri) {

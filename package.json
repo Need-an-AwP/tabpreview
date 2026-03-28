@@ -2,7 +2,7 @@
   "name": "tabpreview",
   "displayName": "TabPreview",
   "description": "Custom tab switcher with previews",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "publisher": "NeedanAwP",
   "license": "MIT",
   "preview": true,
@@ -196,7 +196,7 @@
     ]
   },
   "scripts": {
-    "package": "vsce package",
+    "package": "vsce package --target win32-x64",
     "vscode:prepublish": "npm run webview:build && npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
@@ -218,6 +218,6 @@
     "typescript-eslint": "^8.56.1"
   },
   "dependencies": {
-    "lit-html": "^3.3.2"
+    "koffi": "^2.15.2"
   }
 }

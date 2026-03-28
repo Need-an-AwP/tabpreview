@@ -226,3 +226,7 @@ export const closeTab = (closingUri: string, groupIndex: number) => {
         }
     });
 };
+
+export const setContextKey = (i: boolean) => {
+    vscode.commands.executeCommand('setContext', 'tabpreview.visible', i);
+};

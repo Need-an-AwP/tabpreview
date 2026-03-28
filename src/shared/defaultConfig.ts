@@ -21,4 +21,4 @@ export const defaultConfig: Config = {
         opacity: 0.4,
         onlyVisibleRange: true
     }
-};  
+};

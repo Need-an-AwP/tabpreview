@@ -2,13 +2,14 @@
 
 TabPreview is a custom Ctrl+Tab switcher for VS Code with visual tab previews.
 
+> [!IMPORTANT]
+> This extension only support Windows now
+
 ## Features
 
 - Replaces the default editor switcher flow with a visual tab panel.
 - Overrides the built-in VS Code `Ctrl+Tab` editor switching shortcut.
 - Shows file icons and optional code thumbnails.
-- Supports quick tab switching and tab closing from the panel.
-- Provides extension settings for size, icon style, and thumbnail rendering.
 
 ## Usage
 
@@ -21,7 +22,7 @@ TabPreview is a custom Ctrl+Tab switcher for VS Code with visual tab previews.
 
 ## Speed
 
-The current implementation is constrained by vscode's API; consequently, key-up detection had to be placed within the Webview, resulting in a focus latency of approximately 60ms. This may lead to missed keypress events if the Ctrl key is released too quickly.
+由于vscode无法提供按键释放动作监听，此插件使用原生调用监听ctrl按键释放动作，目前仅支持windows
 If `tabPreview.retainWebview` is been set to `false`, the webview will rerender completely every `ctrl+tab`, which will bring lantency around 150ms.
 
 ## Screen Shot

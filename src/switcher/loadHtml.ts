@@ -1,19 +1,5 @@
-import * as vscode from 'vscode';
-import * as fs from 'fs';
 import type { TabGroupInfo, TabInputType, Config } from '../shared/types';
 
-
-export function loadHtml(context: vscode.ExtensionContext, webview: vscode.Webview): { distHtmlContent: string, htmlBaseUri: string } {
-    const htmlUri = vscode.Uri.joinPath(context.extensionUri, 'media', 'index.html');
-    const distHtmlContent = fs.readFileSync(htmlUri.fsPath, 'utf8');
-    const baseUri = vscode.Uri.joinPath(context.extensionUri, 'media');
-    const htmlBaseUri = webview.asWebviewUri(baseUri).toString() + '/';
-
-    return {
-        distHtmlContent,
-        htmlBaseUri
-    };
-}
 
 export function assembleWebview({
     distHtmlContent,
@@ -34,18 +20,13 @@ export function assembleWebview({
 
     // focus window and create keyup listener asap
     const listenerScript = `
-        window.focus();
+        // window.focus();
 
         window.vscodeApi = acquireVsCodeApi();
         
-        window.addEventListener('keyup', (e) => {
-            if (e.key === 'Control') {
-                window.vscodeApi.postMessage({ command: 'closeTabPreviewWindow', isSwitchingTab: true });
-            }
-        });
-        window.addEventListener('focus', () => {
-            window.vscodeApi.postMessage({ command: 'loadComplete', event: 'webview focused' });
-        });
+        // window.addEventListener('focus', () => {
+        //     window.vscodeApi.postMessage({ command: 'loadComplete', event: 'webview focused' });
+        // });
     `;
 
     // ATTENTION: replace `<head>` instead of `</head>` to ensure the script is executed before any other script in the HTML,
@@ -59,7 +40,8 @@ export function assembleWebview({
         <script>
             window.__TAB_GROUPS__ = JSON.parse(document.getElementById('initial-data').textContent).tabsData;
             window.__CONFIG__ = JSON.parse(document.getElementById('initial-data').textContent).config;
-        </script>`
+        </script>
+        `
     );
 
     return finalHtml;

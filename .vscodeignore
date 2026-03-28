@@ -12,3 +12,6 @@ vsc-extension-quickstart.md
 
 */**/test/**/*
 node_modules/**
+
+# exclude koffi
+!node_modules/koffi/**

@@ -30,19 +30,13 @@ export function thumbnail(tab: TabInfo) {
         const content = tab.textContent;
         // console.log('text content of', tab.label, content);
 
-        const lang = tab.language || 'plaintext';
-        if (lang !== 'plaintext') {
-            const basicKey = Object.keys(basicLanguageModules).find(k => k.includes(`/${lang}/${lang}.contribution.js`));
-            if (basicKey && basicLanguageModules[basicKey]) {
-                await basicLanguageModules[basicKey]();
-            }
-        }
+        // 异步动态导入monaco语言包很可能会导致布局闪烁
 
         editor.setTheme(state.config.thumbnail.theme);
         editor
             .colorize(
                 content,
-                lang,
+                tab.language,
                 { tabSize: undefined } // tab width, default 4
             )
             .then((htmlString: string) => {
@@ -90,4 +84,13 @@ export function thumbnail(tab: TabInfo) {
             ${ref(monacoMountHook)}
         />
     `;
+}
+
+export async function loadMonacoLangPacks(lang: string) {
+    if (lang !== 'plaintext') {
+        const basicKey = Object.keys(basicLanguageModules).find(k => k.includes(`/${lang}/${lang}.contribution.js`));
+        if (basicKey && basicLanguageModules[basicKey]) {
+            await basicLanguageModules[basicKey]();
+        }
+    }
 }

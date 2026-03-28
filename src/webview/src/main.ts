@@ -26,9 +26,11 @@ initState({
 // first render
 rerender();
 
-window.addEventListener('blur', () => {
-    (window as any).vscodeApi.postMessage({ command: 'closeTabPreviewWindow', isSwitchingTab: false });
-});
+if (!state.config.retainWebview) {
+    window.addEventListener('blur', () => {
+        (window as any).vscodeApi.postMessage({ command: 'closeTabPreviewWindow', isSwitchingTab: false });
+    });
+}
 
 // listen to messages from the extension to update data without reloading
 window.addEventListener('message', (event) => {
